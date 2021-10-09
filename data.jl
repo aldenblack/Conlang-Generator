@@ -1,8 +1,8 @@
-#module Data
 using CSV
 using DataFrames
 
-
+# TODO:
+# Convert CSV to julia datastructure and save it
 struct CSVconsonant
 	phoneme::String
 	frequency::Float64 # Between 0-1
@@ -19,8 +19,6 @@ function initializeData()
 		end
 	end
 end
-
-#end # End Module
 
 IPApulmonicConsonants = [ # % - blank, * - grey
 # Bilabial   Labiodental   Dental     Alveolar  Postalveolar  Retroflex   Palatal      Velar       Uvular    Pharyngeal   Glottal
@@ -77,6 +75,40 @@ pulmonicManners = Dict(
 	9 => "Affricate"
 	)
 
+IPAvowels = [
+	[('i', 'y'), ('ɨ', 'ʉ'), ('ɯ', 'u')],
+	[('ɪ', 'ʏ'), ('*', '*'), ('*', 'ʊ')],
+	[('e', 'ø'), ('ɘ', 'ɵ'), ('ɤ', 'o')],
+	[('*', '*'), ('ə', '*'), ('*', '*')],
+	[('ɛ', 'œ'), ('ɜ', 'ɞ'), ('ʌ', 'ɔ')],
+	[('æ', '*'), ('ɐ', '*'), ('*', '*')], 
+	[('a', 'ɶ'), ('*', '*'), ('ɑ', 'ɒ')] # ɚɝɛ̃ʋⱱ
+]
+CLOSE = 1
+NEARCLOSE = 2
+CLOSEMID = 3
+MID = 4
+OPENMID = 5
+NEAROPEN = 6
+OPEN = 7
+FRONT = 1
+CENTRAL = 2
+BACK = 3
+vowelHeight = Dict(
+	1 => "Close",
+	2 => "Nearclose",
+	3 => "Closemid",
+	4 => "Mid",
+	5 => "Openmid",
+	6 => "Nearopen",
+	7 => "Open"
+	)
+vowelBackness = Dict(
+	1 => "Front",
+	2 => "Central",
+	3 => "Back"
+	)
+
 struct IPAdiacritic 
 	diacritic::Char
 	type::String
@@ -97,10 +129,10 @@ end
 
 struct IPAvowel
 	phoneme::String
-	height::String
+	height::String # Openness
 	backness::String
-	roundness::Bool
-	diacritics::Array{IPAvowelmodifier} # prev. called modifiers
+	roundness::Bool # true is round
+	diacritics::Array{IPAdiacritic} # prev. called modifiers
 end
 
 struct IPAphoneticInventory
@@ -111,7 +143,7 @@ end
 function getCharAndDiacritics(p)
 	returnstring = p.phoneme
 	if length(p.diacritics) > 0
-		for d in p.diacritics
+		for d in p.diacritics # FIXME: ts̪, kxⁿ, pɸⁿ, but "d̪ʰ" is perfect
 			returnstring *= d.diacritic # Check if the diacritic type has "pre", if so it should go in front.
 		end
 	end
@@ -123,6 +155,12 @@ function getCharAndDiacritics(p)
 	#end
 
 end
+
+""" Helper function used for consonant inventory construction choose whether two values should be identical."""
+function sameWithMargin(randval, base, margin)
+	return randval < margin ? !base : base
+end
+
 #=
 pVoicing: false
 pAspiration: true
@@ -131,7 +169,7 @@ fVoicing: false
 =#
 
 # DIACRITICS
-ⁿ = IPAdiacritic('ⁿ', "Nasalized") # Prenasalize for consonants, nasal for vowels
+ⁿ = IPAdiacritic('ⁿ', "Prenasalized") # Prenasalize for consonants, nasal for vowels
 ʰ = IPAdiacritic('ʰ', "Aspirated")
 ʲ = IPAdiacritic('ʲ', "Palatized")
 ʷ = IPAdiacritic('ʷ', "Labialized")
@@ -144,7 +182,10 @@ fVoicing: false
 ʳ = IPAdiacritic('ʳ', "???")
 ᵗ = IPAdiacritic('ᵗ', "???")
 ˠ = IPAdiacritic('ˠ', "Velarized")
-
-# TODO:
-# Convert CSV to julia datastructure and save it
+dental = IPAdiacritic('̪', "Dentalized")
+# Vowel Diacritics 
+ː = IPAdiacritic('ː', "Long")
+ˑ = IPAdiacritic('ˑ', "Half-Long")
+◌̃ = IPAdiacritic('˜', "Nasal") # ◌̃˜ 
+◌˞ = IPAdiacritic('˞', "Rhotic") 
 
