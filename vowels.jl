@@ -16,22 +16,21 @@ function buildVowelInventory(seed)
 	highnasal = rand(rng) < 0.1
 	lownasal = rand(rng) 
 	if vowelsystem == 0 
-        v1options = [IPAvowel("i", "close", "front", false, []), IPAvowel("ɪ", "nearclose", "front", false, []), IPAvowel("e", "closemid", "front", false, [])]
-        v1 = v1options[findfirst(cumsum([0.3, 0.3, 0.4]) .> rand(rng))]
-        v2options = [IPAvowel("a", "open", "front", false, []), IPAvowel("æ", "nearopen", "front", false, []), IPAvowel("e", "closemid", "front", false, [])]
-        v2 = v2options[findfirst(cumsum([0.3, 0.3, 0.4]) .> rand(rng))]
-        while true
-            v2 = v2options[findfirst(cumsum([0.3, 0.3, 0.4]) .> rand(rng))] # 137397147
-            println(v2)
-            println(v1 == v2)
-            v1 != v2 || break
-        end
-        v3options = [IPAvowel("u", "high", "back", true, []), IPAvowel("o", "mid", "back", true, []), IPAvowel("ɯ", "high", "back", false, []),]
-        v3 = v3options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))]
+		v1options = [IPAvowel("i", "close", "front", false, []), IPAvowel("ɪ", "nearclose", "front", false, []), IPAvowel("e", "closemid", "front", false, [])]
+		v1 = v1options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))] # test case 0.3, 0.3, 0.4
+		v2options = [IPAvowel("a", "open", "front", false, []), IPAvowel("æ", "nearopen", "front", false, []), IPAvowel("e", "closemid", "front", false, [])]
+		v2 = v2options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))] # FIXME: make e and ae less common for v1 and v2
+		while true
+			v2 = v2options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))] # 137397147 proof of e == e
+			v1.phoneme != v2.phoneme && break
+		end
+		v3options = [IPAvowel("u", "high", "back", true, []), IPAvowel("o", "mid", "back", true, []), IPAvowel("ɯ", "high", "back", false, []),]
+		v3 = v3options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))]
 		push!(vowelInventory, v1)
-        push!(vowelInventory, v2)
-        push!(vowelInventory, v3)
+		push!(vowelInventory, v2)
+		push!(vowelInventory, v3)
 	elseif vowelsystem == 1
+		# Distance algorithm, select randomly based on what's far away from previous ones. (Or if distance algorithm has weird results, just use it for the >5 v system)
 		
 	else
 		close = true
@@ -48,5 +47,8 @@ function buildVowelInventory(seed)
 		end
 	end
 	# Length, nasalization, breathy/creaky, etc. goes after over a for loop of the vowelInventory
+	
+	# Tone (Maybe include a tone graph.) 60%-ish of languages in natlangs
+
 	return vowelInventory
 end

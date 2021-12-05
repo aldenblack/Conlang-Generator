@@ -20,6 +20,8 @@ function initializeData()
 	end
 end
 
+# PHONEME DATA
+
 IPApulmonicConsonants = [ # % - blank, * - grey
 # Bilabial   Labiodental   Dental     Alveolar  Postalveolar  Retroflex   Palatal      Velar       Uvular    Pharyngeal   Glottal
 [('%', 'm'), ('%', 'ɱ'), ('%', '%'), ('%', 'n'), ('%', '%'), ('%', 'ɳ'), ('%', 'ɲ'), ('%', 'ŋ'), ('%', 'ɴ'), ('*', '*'), ('*', '*')], # Nasal
@@ -75,7 +77,7 @@ pulmonicManners = Dict(
 	9 => "Affricate"
 	)
 
-IPAvowels = [
+const IPAvowels = [
 	[('i', 'y'), ('ɨ', 'ʉ'), ('ɯ', 'u')],
 	[('ɪ', 'ʏ'), ('*', '*'), ('*', 'ʊ')],
 	[('e', 'ø'), ('ɘ', 'ɵ'), ('ɤ', 'o')],
@@ -143,8 +145,14 @@ end
 function getCharAndDiacritics(p)
 	returnstring = p.phoneme
 	if length(p.diacritics) > 0
-		for d in p.diacritics # FIXME: ts̪, kxⁿ, pɸⁿ, but "d̪ʰ" is perfect
-			returnstring *= d.diacritic # Check if the diacritic type has "pre", if so it should go in front.
+		for d in p.diacritics 
+			if d.type[1:3] == "Pre"
+				returnstring = d.diacritic * returnstring
+			elseif d.type == "Dentalized" # Fixes ts̪, reliant on dentalize coming before prenasalize
+				returnstring = returnstring[1]*d.diacritic*returnstring[2:end] 
+			else
+				returnstring *= d.diacritic # Check if the diacritic type has "pre", if so it should go in front.
+			end
 		end
 	end
 	return returnstring
@@ -169,6 +177,7 @@ fVoicing: false
 =#
 
 # DIACRITICS
+#◌ = IPAdiacritic(nothing, "No Diacritic") 
 ⁿ = IPAdiacritic('ⁿ', "Prenasalized") # Prenasalize for consonants, nasal for vowels
 ʰ = IPAdiacritic('ʰ', "Aspirated")
 ʲ = IPAdiacritic('ʲ', "Palatized")
@@ -188,4 +197,21 @@ dental = IPAdiacritic('̪', "Dentalized")
 ˑ = IPAdiacritic('ˑ', "Half-Long")
 ◌̃ = IPAdiacritic('˜', "Nasal") # ◌̃˜ 
 ◌˞ = IPAdiacritic('˞', "Rhotic") 
+
+# GRAMMAR DATA
+
+struct Grammar
+	mainWordOrder::String
+	fullWordOrder::Array{String}
+	alignment::String
+
+end
+# Data taken from https://en.wikipedia.org/wiki/Word_order#Distribution_of_word_order_types Dryer 2005 Study
+SOV = 0.405
+SVO = 0.354
+VSO = 0.069
+VOS = 0.021
+OVS = 0.007
+OSV = 0.003
+UNFIXED = 0.141
 
