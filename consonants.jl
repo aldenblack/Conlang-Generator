@@ -27,10 +27,10 @@ function buildConsonantInventory(seed)
 
 	fVoicing = sameWithMargin(rand(rng), pVoicing,0.01)
 	fAspiration = sameWithMargin(rand(rng), pVoicing,0.01)
-	fLength = rand(rng) < 0.1 && !fAspiration # no fricative length and aspiration. can remove
+	fLength = rand(rng) < 0.08 && !fAspiration # No gemination and aspiration
 
 	# Affricate Series
-	affricates = rand(rng) < 1 # Edit value
+	affricates = rand(rng) < 1 # FIXME: Give probability
 
 	# Nasal Series
 	nVoicing = rand(rng) < 0.03
@@ -89,7 +89,7 @@ function buildConsonantInventory(seed)
 	# 0.05 chance for dental fricatives, joined with the alveolar chance. In dentalized ones, one or the other?
 
 	# Clean impossible/unused phonemes
-	# Add cleaning of possible repeats, if they appear, or make output a set.
+	# TODO: Add cleaning of possible repeats, if they appear, or make output a set.
 	index = 1
 	while index <= length(consonantInventory)
 		if consonantInventory[index].phoneme == '%' || consonantInventory[index].phoneme == '*'
@@ -97,7 +97,7 @@ function buildConsonantInventory(seed)
 		else
 			index += 1
 		end
-	end # Make a note: Get some public domain phoneme assets so people can hear their language being spoken
+	end # NOTE: Get some public domain phoneme assets so people can hear their language being spoken
 
 	# Affricate Series
 	#https://en.wikipedia.org/wiki/Affricate
@@ -147,17 +147,17 @@ end
 function buildNasalSeries(rng, consonantInventory, places, bilabial)
 	for place in 1:length(places)
 		if places[place]
+			currentPlace = get(pulmonicPlaces, place, "ERROR")
 			currentConsonant = IPApulmonicConsonants[NASAL][place]
+			
 			if place > 2 # if not labial, give an extra chance to skip.
-				if rand(rng) < 0.95
-					push!(consonantInventory, IPAconsonant(currentConsonant[2], get(pulmonicPlaces, place, "ERROR"), "Nasal", true, []))
-				end
+				pushToInventory(rng, 0.95, consonantInventory, currentConsonant, 2, currentPlace, "Nasal", [])
 			else
 				if place == 2 # labiodental nasal is rare
 					mod = bilabial ? 0 : 0.7
-					rand(rng) < 0.05+mod ? push!(consonantInventory, IPAconsonant(currentConsonant[2], get(pulmonicPlaces, place, "ERROR"), "Nasal", true, [])) : nothing 
+					pushToInventory(rng, 0.05+mod, consonantInventory, currentConsonant, 2, currentPlace, "Nasal", [])
 				else
-					push!(consonantInventory, IPAconsonant(currentConsonant[2], get(pulmonicPlaces, place, "ERROR"), "Nasal", true, []))
+					pushToInventory(rng, 1, consonantInventory, currentConsonant, 2, currentPlace, "Nasal", [])
 				end
 			end
 		end
@@ -165,76 +165,99 @@ function buildNasalSeries(rng, consonantInventory, places, bilabial)
 end
 
 function buildPlosiveSeries(rng, consonantInventory, places, pVoicing, pAspiration, dentalization, prenasalize, primingvoice)
-	voice = primingvoice # startvoice for fricative coherence
-	voice2 = rand(rng) < 0.5 ? voice : 3-voice # For swapping, may end up unused. Currently in aspiration-only case.
+	if pVoicing
+		voices = [1, 2]
+	else
+		voices = [primingvoice]
+	end
+
 	for place in 1:length(places)
+		rand(rng) < 0.7 ? aspiration = [ʰ, nothing] : aspiration = [nothing, ʰ] # For pVoice !pAsp
 		if places[place]
             currdiacritics = []
-            (dentalization && place == 4) && push!(currdiacritics, dental)
-            prenasalize && push!(currdiacritics, ⁿ)
+            (place == 4 && dentalization) && push!(currdiacritics, dental)
 
 			currentConsonant = IPApulmonicConsonants[PLOSIVE][place]
-			if pVoicing && !pAspiration 
-				voice = 1
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), currdiacritics)) : nothing
-				voice = 2
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), currdiacritics)) : nothing
-			elseif !pVoicing && pAspiration
-				voice = rand(rng) < 0.90 ? voice : 3-voice # 1/10 chance to swap voice for non-voice-distinguishing langs
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), currdiacritics)) : nothing
-				#voice2, may end up odd if voice swaps midway. theoretically this is another separate construction method
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice2], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), vcat(currdiacritics, [ʰ]))) : nothing 
-			elseif pVoicing && pAspiration
-				voice = 1
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), currdiacritics)) : nothing 
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), vcat(currdiacritics, [ʰ]))) : nothing 
-				voice = 2
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), currdiacritics)) : nothing
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), vcat(currdiacritics, [ʰ]))) : nothing 
-			else # No voicing or aspiration
-				voice = rand(rng) < 0.90 ? voice : 3-voice # Aspiration not phonemic, ergo left unwritten. Voice purely for aesthetics and choosing the phoneme char.
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Plosive", Bool(voice-1), currdiacritics)) : nothing
+			currentPlace = get(pulmonicPlaces, place, "ERROR")
+			### A language will fall into one of these categories: 
+			# p b
+			# p b ⁿb
+			# pʰ b
+			# pʰ b ⁿb
+			# p bʰ
+			# p bʰ ⁿb
+			# pʰ p
+			# pʰ p ⁿb
+			# b bʰ
+			# b bʰ ⁿb
+			# p pʰ b bʰ
+			### 
+ 			aspirindex = 1 # swap aspiration for voiced but not aspirated
+			for voice in voices
+				 ʰ in currdiacritics ? pop!(currdiacritics) : nothing # Clear aspiration from previous voice in pVoice !pAsp
+				if prenasalize && voice == 2
+					pushToInventory(rng, 0.99, 
+						consonantInventory, currentConsonant, voice, currentPlace, "Plosive", vcat(currdiacritics, [ⁿ]))
+				end
+				if pVoicing && !pAspiration
+					aspiration[aspirindex] != nothing ? push!(currdiacritics, aspiration[aspirindex]) : nothing
+					aspirindex = 3-aspirindex
+				end
+				pushToInventory(rng, 0.99, 
+						consonantInventory, currentConsonant, voice, currentPlace, "Plosive", currdiacritics)
+				if pAspiration
+					pushToInventory(rng, 0.99, 
+						consonantInventory, currentConsonant, voice, currentPlace, "Plosive", vcat(currdiacritics, [ʰ]))
+				end
+			end
+
+			if !pVoicing # 1/10 chance to swap voice for non-voice-distinguishing langs
+				voices[1] = rand(rng) < 0.10 ? 3-voices[1] : voices[1] 
 			end
 		end
 	end
 end
 
 function buildFricativeSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, primingvoice)
-    voice = primingvoice
-	voice2 = rand(rng) < 0.5 ? voice : 3-voice # NOTE: For swapping, may end up unused. Currently in aspiration-only case.
     places[3] = rand(rng) < 0.05; places[5] = rand(rng) < 0.25 # Handles dental and postalveolar fricatives. 
     place = 1 # While loop to stop labiodentals from being added twice, as in 6710414268 and 4544225130 NOTE: Mentioned seeds are somehow identical.
+	if fVoicing
+		voices = [1, 2]
+	else
+		voices = [primingvoice]
+	end
+	diacritics = []
+	if fAspiration; push!(diacritics, ʰ); end
+	if fLength; push!(diacritics, ː); end
+
 	while place <= length(places) 
 		if places[place]
 			place == 1 ? (rand(rng) < 0.95 ? place = 2 : nothing) : nothing # Handles Bilabial Fricatives
+			currentPlace = get(pulmonicPlaces, place, "ERROR")
 			currentConsonant = IPApulmonicConsonants[FRICATIVE][place]
-			if fVoicing && !fAspiration 
-				voice = 1
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [])) : nothing
-				voice = 2
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [])) : nothing
-			elseif !fVoicing && fAspiration
-				voice = rand(rng) < 0.90 ? voice : 3-voice # 1/10 chance to swap voice for non-voice-distinguishing langs
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [])) : nothing
-				#voice2; may end up odd if voice swaps midway. theoretically this is another separate construction method
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice2], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [ʰ])) : nothing 
-			elseif fVoicing && fAspiration
-				voice = 1
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [])) : nothing 
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [ʰ])) : nothing 
-				voice = 2
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [])) : nothing
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [ʰ])) : nothing 
-			else # No voicing or aspiration
-				voice = rand(rng) < 0.90 ? voice : 3-voice # Aspiration not phonemic, ergo left unwritten. Voice purely for aesthetics and choosing the phoneme char.
-				rand(rng) < 0.99 ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], get(pulmonicPlaces, place, "ERROR"), "Fricative", false, [])) : nothing
+
+			for voice in voices
+				pushToInventory(rng, 0.99, consonantInventory, currentConsonant, voice, currentPlace, "Fricative", [])
+				for diacritic in diacritics # should only be one or the other
+					pushToInventory(rng, 
+						0.99, consonantInventory, currentConsonant, voice, currentPlace, "Fricative", [diacritic])
+				end
+			end
+
+			if !fVoicing # Chance to swap voicing
+				voices[1] = rand(rng) < 0.10 ? 3-voices[1] : voices[1]
 			end
 		end
         place += 1
-    end 
-end
+    end # TODO: fix pɸ / pf problem and frequency of ɸ (affricate-only problem)
+end # Even pf is very rare, so make bilabial affricates go through an extra layer of heavy scrutiny. 
+# FIXME: prenasalization frequency and "pɸⁿ", "bβⁿ", "tsⁿ", "dzⁿ", "kxⁿ", "ɡɣⁿ" in language with "pⁿ", "bⁿ", "tⁿ", "dⁿ", "kⁿ" (INCLUDE NONPRENASALIZED)
 
-function buildAffricateSeries(rng, consonantInventory)
+
+
+
+
+function buildAffricateSeries(rng, consonantInventory) #TODO: Each affricate should be far less likely than its fricative counterpart, but should still come in pairs/groups.
     for consonant in consonantInventory
 		if consonant.manner == "Plosive"
 			placepos = eval(Meta.parse(uppercase(consonant.place))) 
@@ -256,4 +279,10 @@ function buildAffricateSeries(rng, consonantInventory)
 	# broad diacritic saving or specific?
 end
 
+function buildLiquidSeries()
 
+end
+
+function pushToInventory(rng, probability, consonantInventory, currentConsonant, voice, place, manner::String, diacritics)
+	rand(rng) < probability ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], place, manner, voice-1, diacritics)) : nothing
+end

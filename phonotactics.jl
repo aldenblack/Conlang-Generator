@@ -11,6 +11,7 @@ function buildPhonotactics(seed)
 	return syllableStructure
 	#TODO: Turn probabilities into if-statement check to find exactly the distributions I want
 	# Use curve-fitting algorithm (talk to kaleb later)
+	
 
 
 	# Onsets and codas tend to be similar in max length
