@@ -143,13 +143,13 @@ struct IPAphoneticInventory
 end
 
 function getCharAndDiacritics(p)
-	returnstring = p.phoneme
+	returnstring = string(p.phoneme)
 	if length(p.diacritics) > 0
 		for d in p.diacritics 
 			if d.type[1:3] == "Pre"
 				returnstring = d.diacritic * returnstring
 			elseif d.type == "Dentalized" # Fixes ts̪, reliant on dentalize coming before prenasalize
-				returnstring = returnstring[1]*d.diacritic*returnstring[2:end] 
+				returnstring = returnstring[1]*d.diacritic*returnstring[2:end] # 1156170593
 			else
 				returnstring *= d.diacritic # Check if the diacritic type has "pre", if so it should go in front.
 			end
@@ -207,11 +207,23 @@ struct Grammar
 
 end
 # Data taken from https://en.wikipedia.org/wiki/Word_order#Distribution_of_word_order_types Dryer 2005 Study
-SOV = 0.405
-SVO = 0.354
-VSO = 0.069
-VOS = 0.021
-OVS = 0.007
-OSV = 0.003
-UNFIXED = 0.141
+const SOV = 0.405
+const SVO = 0.354
+const VSO = 0.069
+const VOS = 0.021
+const OVS = 0.007
+const OSV = 0.003
+const UNFIXED = 0.141
 
+const N = "Noun"
+const DEM = "Demonstrative"
+const NUM = "Number"
+const POS = "Possessive"
+const GEN = "Genitive"
+const ADJ = "Adjective"
+const REL = "Relative"
+
+PP = "Prepositional Phrase"
+NP = "Noun Phrase"
+VP = "Verb Phrase"
+DT = "Determiner Phrase"
