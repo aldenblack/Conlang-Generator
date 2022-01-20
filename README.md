@@ -4,7 +4,7 @@ Protolang is a conlang (constructed language) generator made for writers and wor
 
 ## How To Use
 
-Currently, Protolang is accessible as a terminal app. 
+Protolang is currently accessible as a terminal app. 
 
 Run `julia main.jl` from within the file. You will be prompted with:
 ```
