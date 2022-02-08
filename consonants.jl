@@ -52,8 +52,9 @@ function buildConsonantInventory(seed)
 
 	
 	# Generate Primary Places
+	# FIXME: Should be a set 
 
-	bilabial = rand(rng) < 0.98 # Bilabial Trill problem
+	bilabial = rand(rng) < 0.98 # Bilabial Trill problem 
 	labiodental = rand(rng) < 0.60 # f v should take bilabial precedent?
 	alveolar = rand(rng) < 0.999
 	dentalization = rand(rng) < 0.05
@@ -84,7 +85,7 @@ function buildConsonantInventory(seed)
 	#plus a much lower chance to be asymmetric with the pairs.
 
 	# Fricative Series 
-	buildFricativeSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, primingvoice)
+	buildFricativeSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, dentalization, primingvoice)
 
 	# 0.05 chance for dental fricatives, joined with the alveolar chance. In dentalized ones, one or the other?
 
@@ -109,9 +110,7 @@ function buildConsonantInventory(seed)
 	
 	# Trills
 	# Liquid Series
-	for place in 1:length(places)
-
-	end
+	buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, lApprox, lLateral)
 
 	#NON-PULMONIC
 	#If there's one click, it's more likely to add others. 
@@ -203,11 +202,13 @@ function buildPlosiveSeries(rng, consonantInventory, places, pVoicing, pAspirati
 					aspiration[aspirindex] != nothing ? push!(currdiacritics, aspiration[aspirindex]) : nothing
 					aspirindex = 3-aspirindex
 				end
-				pushToInventory(rng, 0.99, 
-						consonantInventory, currentConsonant, voice, currentPlace, "Plosive", currdiacritics)
-				if pAspiration
-					pushToInventory(rng, 0.99, 
-						consonantInventory, currentConsonant, voice, currentPlace, "Plosive", vcat(currdiacritics, [ʰ]))
+				if rand(rng) < 0.90 # Assymetry for block
+					pushToInventory(rng, 0.96, 
+							consonantInventory, currentConsonant, voice, currentPlace, "Plosive", currdiacritics)
+					if pAspiration
+						pushToInventory(rng, 0.96, 
+							consonantInventory, currentConsonant, voice, currentPlace, "Plosive", vcat(currdiacritics, [ʰ]))
+					end
 				end
 			end
 
@@ -218,29 +219,34 @@ function buildPlosiveSeries(rng, consonantInventory, places, pVoicing, pAspirati
 	end
 end
 
-function buildFricativeSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, primingvoice)
-    places[3] = rand(rng) < 0.05; places[5] = rand(rng) < 0.25 # Handles dental and postalveolar fricatives. 
+function buildFricativeSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, dentalization, primingvoice)
+    places[3] = rand(rng) < 0.05 + (dentalization/1.25); places[5] = rand(rng) < 0.25 # Handles dental and postalveolar fricatives. 
+	dentalization ? (places[4] ? places[4] = rand(rng) < 0.6 : nothing) : nothing
     place = 1 # While loop to stop labiodentals from being added twice, as in 6710414268 and 4544225130 NOTE: Mentioned seeds are somehow identical.
 	if fVoicing
 		voices = [1, 2]
 	else
-		voices = [primingvoice]
+		voices = [primingvoice] #FIXME: Same way that pb -> fv, make kg -> h instead of x sometimes.
 	end
 	diacritics = []
 	if fAspiration; push!(diacritics, ʰ); end
 	if fLength; push!(diacritics, ː); end
-
+	swapvelar = false
 	while place <= length(places) 
 		if places[place]
-			place == 1 ? (rand(rng) < 0.95 ? place = 2 : nothing) : nothing # Handles Bilabial Fricatives
+			if place == BILABIAL; if rand(rng) < 0.95; place = 2; end; end # Handles Bilabial Fricatives
+			#if place == VELAR; if !places[GLOTTAL]; if rand(rng) < 0.95; place = GLOTTAL; swapvelar = true; end; end; end # randomly skips whole sections in all languages with k-series and h.
 			currentPlace = get(pulmonicPlaces, place, "ERROR")
 			currentConsonant = IPApulmonicConsonants[FRICATIVE][place]
-
-			for voice in voices
-				pushToInventory(rng, 0.99, consonantInventory, currentConsonant, voice, currentPlace, "Fricative", [])
-				for diacritic in diacritics # should only be one or the other
-					pushToInventory(rng, 
-						0.99, consonantInventory, currentConsonant, voice, currentPlace, "Fricative", [diacritic])
+			if rand(rng) < 0.90 # Assymetry for block
+				for voice in voices
+					pushToInventory(rng, 0.95, consonantInventory, currentConsonant, voice, currentPlace, "Fricative", [])
+					if place == GLOTTAL && rand(rng) < 0.25 # Less likely to have variation for h
+					for diacritic in diacritics # should only be one or the other
+						pushToInventory(rng, 
+							0.95, consonantInventory, currentConsonant, voice, currentPlace, "Fricative", [diacritic])
+					end
+					end
 				end
 			end
 
@@ -248,13 +254,14 @@ function buildFricativeSeries(rng, consonantInventory, places, fVoicing, fAspira
 				voices[1] = rand(rng) < 0.10 ? 3-voices[1] : voices[1]
 			end
 		end
+		if swapvelar; place = VELAR+1; end
         place += 1
     end # TODO: fix pɸ / pf problem and frequency of ɸ (affricate-only problem)
 end # Even pf is very rare, so make bilabial affricates go through an extra layer of heavy scrutiny. 
 # FIXME: prenasalization frequency and "pɸⁿ", "bβⁿ", "tsⁿ", "dzⁿ", "kxⁿ", "ɡɣⁿ" in language with "pⁿ", "bⁿ", "tⁿ", "dⁿ", "kⁿ" (INCLUDE NONPRENASALIZED)
 
 
-
+# 3189368585 "t̪", "t̪ʰ", "k", "kʰ", "f", "fː", "θ", "θː", "s", "sː", "x", "xː", "pɸ", "pɸʰ", "t̪s", "t̪sʰ", etc should be "t̪θ" and have no length or aspiration
 
 
 function buildAffricateSeries(rng, consonantInventory) #TODO: Each affricate should be far less likely than its fricative counterpart, but should still come in pairs/groups.
@@ -279,10 +286,32 @@ function buildAffricateSeries(rng, consonantInventory) #TODO: Each affricate sho
 	# broad diacritic saving or specific?
 end
 
-function buildLiquidSeries()
+function buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, lApprox, lLateral)
+	# Most language will have some variation on w, l and r-like sounds
+	#TODO: toss in lateral fricative in buildFricativeSeries
+
+	
+	if lApprox
+	for place in 1:length(places)
+		
+		if places[place]
+            pushToInventory(rng, 
+							0.95, consonantInventory, currentConsonant, voice, currentPlace, "Lateral Approximant", [])
+
+		end
+	end
+	end
+	if lLateral
+
+	end
+	# w and ʍ (coarticulated phonemes - tack onto the end and stick in a separate box, as well as with clicks).
 
 end
+
+# Languages with clicks tend to have a lot, and never just one. Bilabial is rare.
 
 function pushToInventory(rng, probability, consonantInventory, currentConsonant, voice, place, manner::String, diacritics)
 	rand(rng) < probability ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], place, manner, voice-1, diacritics)) : nothing
 end
+
+# FIXME: Include posibility that each Place has only a few instances rather than an almost surely dedicated row (i. e. only ç and j but not c or anything else)
