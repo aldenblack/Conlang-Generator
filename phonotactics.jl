@@ -10,8 +10,19 @@ function buildPhonotactics(seed)
 	syllableStructure = (onset, coda)
 	return syllableStructure
 	#TODO: Turn probabilities into if-statement check to find exactly the distributions I want
-	# Use curve-fitting algorithm (talk to kaleb later)
+	# Use curve-fitting algorithm 
 	
+	#onset = [1, 2, 3, 4, 5][findfirst(cumsum([0.6, 0.25, 0.13, 0.015, 0.005]) .> rand(rng))]
+	#coda = [0, 1, 2, 3, 4, 5][findfirst(cumsum([0.4, 0.4, 0.15, 0.025, 0.015, 0.005]) .> rand(rng))]
+	# have coda be within a range of onset
+	#=
+	ONSET | CODA 
+	1       0,1,2
+	2       1,2,3
+	3       2,3,4,5
+	4       3,4,5,6
+	5       3,4,5,6,7
+	=#
 
 
 	# Onsets and codas tend to be similar in max length
@@ -26,3 +37,12 @@ function buildPhonotactics(seed)
 	#Stress system
 	# Initial, Second, Penultimate, Ultimate
 end
+
+function balance(array::Vector, iterations)
+	return
+end
+
+#seed = Int(trunc(rand()*(10^10)))
+#@info seed
+
+#@info buildPhonotactics(seed)

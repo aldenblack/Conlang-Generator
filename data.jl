@@ -33,7 +33,7 @@ IPApulmonicConsonants = [ # % - blank, * - grey
 [('%', '%'), ('%', 'ʋ'), ('%', '%'), ('%', 'ɹ'), ('%', '%'), ('%', 'ɻ'), ('%', 'j'), ('%', 'ɰ'), ('%', '%'), ('%', '%'), ('*', '*')], # Approximant
 [('*', '*'), ('*', '*'), ('%', '%'), ('%', 'l'), ('%', '%'), ('%', 'ɭ'), ('%', 'ʎ'), ('%', 'ʟ'), ('%', '%'), ('*', '*'), ('*', '*')]  # Lateral Approximant
 ]
-BILABIAL = 1
+const BILABIAL = 1
 LABIODENTAL = 2
 DENTAL = 3
 ALVEOLAR = 4
@@ -111,12 +111,16 @@ vowelBackness = Dict(
 	3 => "Back"
 	)
 
-struct IPAdiacritic 
+abstract type IPA end
+
+abstract type IPAchr <: IPA end
+
+struct IPAdiacritic <: IPA
 	diacritic::Char
 	type::String
 end
 
-struct IPAconsonant # Pulmonic and nonpulmonic; click and voiced implosive are manner, ejectives how? 
+struct IPAconsonant <: IPAchr # Pulmonic and nonpulmonic; click and voiced implosive are manner, ejectives how? 
 	phoneme::Union{String, Char}
 	place::String
 	manner::String
@@ -124,12 +128,12 @@ struct IPAconsonant # Pulmonic and nonpulmonic; click and voiced implosive are m
 	diacritics::Array{IPAdiacritic}
 end
 
-struct IPAvowelmodifier # Include tone, nasal, and length
+struct IPAvowelmodifier <: IPA # Include tone, nasal, and length
 	diacritic::String
 	type::String
 end
 
-struct IPAvowel
+struct IPAvowel <: IPAchr
 	phoneme::String
 	height::String # Openness
 	backness::String
@@ -137,7 +141,7 @@ struct IPAvowel
 	diacritics::Array{IPAdiacritic} # prev. called modifiers
 end
 
-struct IPAphoneticInventory
+struct IPAphoneticInventory <: IPA
 	consonants::Array{IPAconsonant} # IPApulmonic?
 	vowels::Array{IPAvowel}
 end
@@ -202,9 +206,11 @@ dental = IPAdiacritic('̪', "Dentalized")
 
 struct Grammar
 	mainWordOrder::String
-	fullWordOrder::Array{String}
+	NPStructure::Array{String}
+	VPStructure::Array{String}
+	prepositions::Bool
 	alignment::String
-
+	adjEncoding::Int
 end
 # Data taken from https://en.wikipedia.org/wiki/Word_order#Distribution_of_word_order_types Dryer 2005 Study
 const SOV = 0.405
@@ -214,6 +220,7 @@ const VOS = 0.021
 const OVS = 0.007
 const OSV = 0.003
 const UNFIXED = 0.141
+const UNF = "Unfixed"
 
 const N = "Noun"
 const DEM = "Demonstrative"
@@ -222,8 +229,87 @@ const POS = "Possessive"
 const GEN = "Genitive"
 const ADJ = "Adjective"
 const REL = "Relative"
+const ADP = "Adposition"
 
+const V = "Verb"
+const SUB = "Subject"
+const OBJ = "Direct Object"
+const INDOBJ = "Indirect Object"
+
+ 
 PP = "Prepositional Phrase"
 NP = "Noun Phrase"
 VP = "Verb Phrase"
 DT = "Determiner Phrase"
+
+const NOMACC = "Nominative/Accusative"
+const NOMMAR = "Nominative/Accusative - Marked Nominative"
+const ERGABS = "Ergative/Absolutive"
+const TRIPAR = "Tripartite"
+const ACTSTA = "Active/Stative"
+const DIRECT = "Direct"
+# Austronesian? - Agreement between verb marking and single marked argument
+# Split (alignment change by tense, aspect, or animacy/gender) - TBA
+
+# MORPHOLOGY DATA
+struct NounClassSystem
+	pronounOnly::Bool
+	genderType::Union{String, Nothing}
+end
+
+const MASC = "Masculine"
+const FEM = "Feminine"
+const NEUT = "Neuter"
+
+const genderClasses = [MASC, FEM, NEUT] #FIXME: Use sets; they have built in functions to pop a random element
+const animacyClasses = []
+
+struct GrammarTable
+	cases::Array{Tuple{String, String}}
+end
+
+# LEXICON DATA
+struct LexEntry
+	word
+	PoS 
+	animacy # include hierarchy/range of animacy for animate-gendered language, i. e. 1:2 or classify by type (plant, divine, human)
+end
+
+abstract type PoS end
+struct Noun <: PoS
+	split
+	word
+	gender
+	animacy
+end
+struct Verb <: PoS
+	split
+	word
+	transitive
+	dative
+end
+abstract type Descriptor end
+struct Adjective <: Descriptor
+	split
+	word
+	agreement # Nominal or verbal treatment
+	animacy
+end
+struct Adverb <: Descriptor
+	split
+	word
+	gender
+	animacy
+end
+	
+
+
+# OUTPUT 
+function Base.zero(::Type{IPAconsonant})
+	return IPAconsonant("", "", "", false, IPAdiacritic[])
+end
+function Base.zero(::Type{String})
+	return ""
+end
+
+

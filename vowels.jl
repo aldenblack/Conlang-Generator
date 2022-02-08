@@ -10,7 +10,7 @@ function buildVowelInventory(seed)
 
 	# Group into 3-vowel system, 5-vowel system, common formations, and other
 	val = rand(rng)
-	vowelsystem = 0#val < 0.15 ? 0 : ( val < 0.45 ? 1 : 2) # 0 - 3vowel, 1 - 5vowel, 2 - random other
+	vowelsystem = val < 0.15 ? 0 : ( val < 0.45 ? 1 : 2) # 0 - 3vowel, 1 - 5vowel, 2 - random other
 	# Prioritize open in the front and round in the back.
 	roundfront = rand(rng) < 0.3
 	highnasal = rand(rng) < 0.1
@@ -31,7 +31,10 @@ function buildVowelInventory(seed)
 		push!(vowelInventory, v3)
 	elseif vowelsystem == 1
 		# Distance algorithm, select randomly based on what's far away from previous ones. (Or if distance algorithm has weird results, just use it for the >5 v system)
-		
+		fronts = 0
+		backs = 0
+		highs = 0
+		lows = 0 # Count how many and try to balance, perhaps with a bit of a forward or backward lean depending on language.
 	else
 		close = true
 		nearclose = rand(rng) < 0.5
@@ -51,4 +54,14 @@ function buildVowelInventory(seed)
 	# Tone (Maybe include a tone graph.) 60%-ish of languages in natlangs
 
 	return vowelInventory
+end
+
+function vowelSelection(rng, )
+	# Preferential distance algorithm, in which certain features (like back roundness) are prioritized
+	for height in 1:length(IPAvowels)
+		for backness in 1:length(IPAvowels[height])
+			IPAvowels[height, backness]
+		end
+	end
+	
 end

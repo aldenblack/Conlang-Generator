@@ -33,8 +33,8 @@ Current output consists of a phoneme inventory and grammar overview.
 
 [Cross-linguistic Phoneme Frequencies](https://phoible.org/parameters)
 
-[World Atlas of Language Structures](https://wals.info)
+[World Atlas of Language Structures](https://wals.info) (Source of most frequencies for grammatical elements)
 
 [Leipzig Glossing Rules](https://www.eva.mpg.de/lingua/resources/glossing-rules.php)
 
-
+[Universal Language Dictionary](https://www.frathwiki.com/Universal_Language_Dictionary) (Lexicon generation based largely on this source)

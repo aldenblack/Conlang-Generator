@@ -1,0 +1,75 @@
+PoS, Complexity, Transation, Derivation, DerivationChance, Metadata
+preposition, 0, "from / away from / out of", "", 0
+preposition, 0, "to / towards ! (going) at", "", 0
+preposition, 0, "at (in the same location as)", "", 0
+preposition, 0, "in (located within)", "", 0
+preposition, 0, "for (purpose) ! for (exchange)", "", 0
+verb, 0, "be", "", 0, transitive
+verb, 1, "exist", "", 0, intransitive
+verb, 0, "become", "be-future", 2, transitive
+verb, 0, "cause (induce something to be/happen)", "", 0, transitive
+verb, 0, "do ! make", "", 0, transitive
+verb, 0, "create", "", 0, transitive
+verb, 0, "walk \ go \ come \ trave;", "", 0, intransitive/transitive
+verb, 0, "own", "", 0, transitive
+verb, 0, "have / possess", "own / be+to", 4, transitive
+verb, 0, "say", "", 0, transitive
+verb, 0, "tell", "", 0, dative
+verb, 0, "speak", "", 0, transitive
+verb, 1, "state | recite ! announce ! confess ! describe | explain ! notify | inform ! instruct | report ! define | express", "", 0, transitive
+verb, 1, "search / look up | investigate | scan / examine / probe", "", 0, transitive
+verb, 1, "greet", "say-hello", 1, transitive
+verb, 1, "rule", "", 0, transitive 
+verb, 1, "live", "", 0, intransitive 
+verb, 1, "die", "", 0, intransitive 
+verb, 1, "give", "", 0, dative 
+noun, 0, "human / person", "", 0, 1
+noun, 0, "someone", "( many / some ) - ( one / person )", 2, 1
+noun, 0, "family", "", 0, 7, neuter
+noun, 0, "sibling", "", 0, 1, neuter
+noun, 0, "brother", "", 0, 1, male
+noun, 0, "sister", "", 0, 1, female
+noun, 0, "parent", "", 0, 1, neuter
+noun, 0, "mother", "", 0, 1, female
+noun, 0, "father", "", 0, 1, male
+noun, 0, "child", "", 0, 2, neuter
+noun, 0, "son", "", 0, 2, male
+noun, 0, "daughter", "", 0, 2, female
+noun, 0, "bird", "", 0, 3-4, neuter
+noun, 0, "dog", "", 0, 3, neuter
+noun, 0, "cat", "", 0, 3, neuter
+noun, 0, "friend", "", 0, 1, neuter
+noun, 0, "group / community", "", 0, 7, neuter
+noun, 0, "rule / law", 3, 7, neuter
+noun, 0, "ruler / chief", "( rule / law ) - ( person / oneWho / man / woman) ", 3, 1, neuter
+noun, 0, "land", "", 0, 7, neuter
+noun, 0, "country", "", 0, 7, neuter
+noun, 0, "traveller", "travel - ( person / oneWho / man / woman )", 3, 1, neuter
+noun, 0, "health", "", 0, 7, neuter
+noun, 0, "life", "", 0, 7, neuter
+noun, 0, "death", "", 0, 7, neuter
+noun, 0, "fruit", "", 0, 6, neuter
+noun, 0, "seed", "", 0, 5, neuter
+noun, 0, "tree ! bush", "", 0, 5, neuter
+noun, 0, "plant", "", 0, 5, neuter
+noun, 0, "river", "", 0, 5, neuter
+noun, 0, "mountain", "", 0, 6, neuter
+noun, 0, "hill", "", 0, 6, neuter
+
+adjective, 0, "quick", "", 0
+adjective, 0, "slow", "", 0
+adjective, 0, "big", "", 0
+adjective, 0, "small", "", 0
+adjective, 0, "healthy", "( health / life)-adj", "live-adj", 0
+adjective, 0, "dead", "death-adj", "die-adj", 0
+adverb, 0, "quickly", "quick-adv / quick", 4
+adverb, 0, "here", "", 0
+adverb, 0, "there ! there (near you) ! there (far away)", "", 0
+adverb, 1, "only", "alone-adv", 4
+adverb, 1, "also / as well as", "", 0
+conjunction, 0, "and ! with"
+conjunction, 0, "but / however"
+conjunction, 0, "so / therefore"
+
+
+
