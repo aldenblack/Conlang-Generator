@@ -30,7 +30,7 @@ function buildConsonantInventory(seed)
 	fLength = rand(rng) < 0.08 && !fAspiration # No gemination and aspiration
 
 	# Affricate Series
-	affricates = rand(rng) < 1 # FIXME: Give probability
+	affricates = rand(rng) < 0.75 # FIXME: Give probability
 
 	# Nasal Series
 	nVoicing = rand(rng) < 0.03
@@ -89,6 +89,10 @@ function buildConsonantInventory(seed)
 
 	# 0.05 chance for dental fricatives, joined with the alveolar chance. In dentalized ones, one or the other?
 
+	# Trills
+	# Liquid Series
+	buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, lApprox, lLateral)
+
 	# Clean impossible/unused phonemes
 	# TODO: Add cleaning of possible repeats, if they appear, or make output a set.
 	index = 1
@@ -108,39 +112,25 @@ function buildConsonantInventory(seed)
         buildAffricateSeries(rng, consonantInventory)
 	end 
 	
-	# Trills
-	# Liquid Series
-	buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, lApprox, lLateral)
-
 	#NON-PULMONIC
 	#If there's one click, it's more likely to add others. 
 	# 1235 n||
 
-	# could do accept-reject
+	clicks = rand(rng) < 0.005
+	randval = rand(rng)
+	cap = 0.61 - 0.2*pVoicing + 0.2*pAspiration + 0.2*prenasalize
+	implosives = randval < cap/4
+	ejectives = rand(rng) < 0.06 / (twoOrMore([pVoicing, pAsporation, prenasalize, implosives]) ? 6 : 1)
+	buildNonpulmonicSeries(rng, consonantInventory, places, clicks, implosives, ejectives)
 
-	# DEBUG PRINTS
-	println("PLACES")
-	println("Bilabial: " * string(bilabial))
-	println("Labiodental: " * string(labiodental))
-	println("Alveolar: " * string(alveolar))
-	println("Retroflex: " * string(retroflex))
-	println("Palatal: " * string(palatal))
-	println("Velar: " * string(velar))
-	println("Uvular: " * string(uvular))
-	println("MANNER MODIFIERS")
-	println("pVoicing: " * string(pVoicing))
-	println("pAspiration: " * string(pAspiration))
-	println("prenasalize: " * string(prenasalize))
-	println("fVoicing: " * string(fVoicing))
-	println("fAspiration: " * string(fAspiration))
-	println("fLength: " * string(fLength))
-	println("Affricates:" * string(affricates))
-	println("Appriximate Group: " * string(lApprox))
-	println("Lateral Group: " * string(lLateral))
-	println("Rhotic/RhoticVowels distinction")
+	
 
 
 	return consonantInventory
+end
+
+function twoOrMore(bArray)
+	return sum(bArray) >= 2
 end
 
 function buildNasalSeries(rng, consonantInventory, places, bilabial)
@@ -278,7 +268,7 @@ function buildAffricateSeries(rng, consonantInventory) #TODO: Each affricate sho
 			if IPApulmonicConsonants[FRICATIVE][placepos][Int(consonant.voice)+1] in [c.phoneme for c in consonantInventory]
 				push!(consonantInventory, affricate) # TODO: kɣʰ has very strange voicing...
 			else
-				rand(rng) < 1 ? push!(consonantInventory, affricate) : nothing #TODO: Change back to 0.2
+				rand(rng) < 0.2 ? push!(consonantInventory, affricate) : nothing #TODO: Change back to 0.2
 			end
 		end
 	end # TODO: Current system disallows things like "dva" as a single phonemic element.
@@ -288,27 +278,134 @@ end
 
 function buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, lApprox, lLateral)
 	# Most language will have some variation on w, l and r-like sounds
-	#TODO: toss in lateral fricative in buildFricativeSeries
-
-	
 	if lApprox
-	for place in 1:length(places)
-		
-		if places[place]
-            pushToInventory(rng, 
-							0.95, consonantInventory, currentConsonant, voice, currentPlace, "Lateral Approximant", [])
-
+		for place in 1:length(places)
+			if place == BILABIAL && !places[LABIODENTAL] && rand(rng) < 0.02; place = LABIODENTAL; end
+			currentPlace = get(pulmonicPlaces, place, "ERROR")
+			currentConsonant = IPApulmonicConsonants[APPROXIMANT][place]
+			if places[place]
+				pushToInventory(rng, 
+								0.4, consonantInventory, currentConsonant, 2, currentPlace, "Approximant", [])
+			end # 0.4
 		end
 	end
+		#high chance for j if not present
+	if !('j' in [c.phoneme for c in consonantInventory])
+		pushToInventory(rng, 0.9, consonantInventory, ('*', 'j'), 2, "Palatal", "Approximant", [])
 	end
+
 	if lLateral
-
+		for place in 1:length(places)
+			currentPlace = get(pulmonicPlaces, place, "ERROR")
+			currentConsonant = IPApulmonicConsonants[LATERALAPPROXIMANT][place]
+			if places[place]
+				pushToInventory(rng, 
+								0.8-(place/40), consonantInventory, currentConsonant, 2, currentPlace, "Lateral Approximant", [])
+			end # 0.8
+		end
 	end
-	# w and ʍ (coarticulated phonemes - tack onto the end and stick in a separate box, as well as with clicks).
-
+		#high chance for l if not present
+	if !('l' in [c.phoneme for c in consonantInventory])
+		pushToInventory(rng, 0.65, consonantInventory, ('*', 'l'), 2, "Alveolar", "Lateral Approximant", [])
+	end
+	
+	# Rhotics
+		# r ɾ ɹ ʁ ʀ ɻ ɽ ɺ
+	rhoticchance = 0.44
+	if any([r in [c.phoneme for c in consonantInventory] for r in ['ʁ', 'ɹ', 'ɻ']]); rhoticchance -= 0.34; end
+	rhotics = [ IPAconsonant('r', "Alveolar", "Trill", true, []), 
+				IPAconsonant('ʀ', "Uvular", "Trill", true, []), 
+				IPAconsonant('ɾ', "Alveolar", "Tap", true, []), 
+				IPAconsonant('ɹ', "Alveolar", "Approximant", true, []), 
+				IPAconsonant('ɽ', "Retroflex", "Tap", true, []), 
+				IPAconsonant('ɻ', "Retroflex", "Approximant", true, []), 
+				IPAconsonant('ɺ', "Alveolar Lateral", "Tap", true, [])]
+	if !('l' in [c.phoneme for c in consonantInventory])
+		if rand(rng) < 0.35; push!(consonantInventory, rhotics[7]); rhoticchance/=4; end
+	end
+	for r in rhotics
+		if rand(rng) < rhoticchance
+			push!(consonantInventory, r)
+			rhoticchance /= 4
+		end
+	end
+	if places[RETROFLEX]; if rand(rng) < 0.4; push!(consonantInventory, rhotics[5]); end; end
+	
+	# Other sounds (Trills, taps/flaps, coarticuated phonemes, lateral fricatives)
+	excess = Dict(
+		IPAconsonant('ⱱ', "Labiodental", "Tap", true, []) => 0.01,
+		IPAconsonant('ʙ', "Bilabial", "Trill", true, []) => 0.005,
+		IPAconsonant('w', "Alveolar", "Trill", true, []) => 0.88,
+		IPAconsonant('ʍ', "Alveolar", "Trill", false, []) => 0.01,
+		IPAconsonant('h', "Glottal", "Fricative", false, []) => 0.50 # TODO: Pair with /x/ and Pharyngial/glottal series
+	)
+	for key in keys(excess)
+		if rand(rng) < excess[key]; push!(consonantInventory, key); end
+	end
 end
+	# w, ʍ, ŋmɡbʷ (coarticulated phonemes - tack onto the end and stick in a separate box, as well as with clicks).
 
 # Languages with clicks tend to have a lot, and never just one. Bilabial is rare.
+function buildNonpulmonicSeries(rng, consonantInventory, places, clicks, implosives, ejectives)
+	if clicks
+		buildClickSeries(rng, consonantInventory, places)
+	end
+	if implosives
+		buildImplosiveSeries(rng, consonantInventory, places)
+	end
+	if ejectives
+		buildEjectiveSeries(rng, consonantInventory, places)
+	end
+end
+
+function buildClickSeries(rng, consonantInventory, places)
+	# ʘ ǀ ǃ ǂ ǁ
+	clicks = [IPAconsonant('ʘ', "Bilabial", "Click", false, []), 
+			  IPAconsonant('ǀ', "Dental", "Click", false, []), 
+			  IPAconsonant('ǃ', "Alveolar", "Click", false, []), 
+			  IPAconsonant('ǂ', "Palatoalveolar", "Click", false, []), 
+			  IPAconsonant('ǁ', "Alveolar lateral", "Click", false, [])
+			  ]
+	kseries = ('k' in [c.phoneme for c in consonantInventory]) && rand(rng) < 0.6
+	gseries = ('ɡ' in [c.phoneme for c in consonantInventory]) && rand(rng) < 0.6
+	ŋseries = ('ŋ' in [c.phoneme for c in consonantInventory]) && rand(rng) < 0.6
+	for c in clicks
+		if rand(rng) < 0.2; continue; end
+		if kseries; pushToInventory(rng, 0.99, consonantInventory, ("k"*c.phoneme, '*'), 1, c.place, c.manner, []); end
+		if gseries; pushToInventory(rng, 0.99, consonantInventory, ('*', "ɡ"*c.phoneme), 2, c.place, c.manner, []); end
+		if ŋseries; pushToInventory(rng, 0.99, consonantInventory, ('*', "ŋ"*c.phoneme), 2, c.place, c.manner, []); end
+	end
+end
+
+function buildImplosiveSeries(rng, consonantInventory, places)
+	# ɓ ɗ ɠ ʄ ʛ
+	implosives = [IPAconsonant('ɓ', "Bilabial", "Implosive", true, []), 
+				  IPAconsonant('ɗ', "Alveolar", "Implosive", true, []), 
+				  IPAconsonant('ʄ', "Palatal", "Implosive", true, []), 
+				  IPAconsonant('ɠ', "Velar", "Implosive", true, []), 
+				  IPAconsonant('ʛ', "Uvular", "Implosive", true, [])
+	]
+	for imp in implosives
+		if places[eval(Meta.parse(uppercase(imp.place)))]
+			if rand(rng) < 0.95; push!(consonantInventory, imp); end
+		end
+	end
+end
+
+function buildEjectiveSeries(rng, consonantInventory, places)
+	ejectiveFricatives = rand(rng) < 0.4
+	for c in consonantInventory
+		if (c.manner == "Plosive" || (c.manner == "Fricative" && ejectiveFricatives))#  && !c.voice
+			currentPhoneme = 
+				IPApulmonicConsonants[eval(Meta.parse(uppercase(c.manner)))][eval(Meta.parse(uppercase(c.place)))][1]
+			ejectiveConsonant = IPAconsonant(currentPhoneme*"'", c.place, "Ejective "*c.manner, false, [])
+			if !(ejectiveConsonant.phoneme in [c.phoneme for c in consonantInventory])
+				if rand(rng) < 0.95; push!(consonantInventory, ejectiveConsonant); end
+			end
+		end
+	end
+end # l 13297986415758172147 1159824386286738196
+
 
 function pushToInventory(rng, probability, consonantInventory, currentConsonant, voice, place, manner::String, diacritics)
 	rand(rng) < probability ? push!(consonantInventory, IPAconsonant(currentConsonant[voice], place, manner, voice-1, diacritics)) : nothing

@@ -1,4 +1,5 @@
-
+using Random
+include("data.jl")
 function buildVowelInventory(seed)
 	rng = MersenneTwister(seed)
 	#VOWELS
@@ -24,44 +25,101 @@ function buildVowelInventory(seed)
 			v2 = v2options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))] # 137397147 proof of e == e
 			v1.phoneme != v2.phoneme && break
 		end
-		v3options = [IPAvowel("u", "high", "back", true, []), IPAvowel("o", "mid", "back", true, []), IPAvowel("ɯ", "high", "back", false, []),]
+		v3options = [IPAvowel("u", "high", "back", true, []), IPAvowel("o", "closemid", "back", true, []), IPAvowel("ɯ", "high", "back", false, []),]
 		v3 = v3options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))]
 		push!(vowelInventory, v1)
 		push!(vowelInventory, v2)
 		push!(vowelInventory, v3)
 	elseif vowelsystem == 1
-		# Distance algorithm, select randomly based on what's far away from previous ones. (Or if distance algorithm has weird results, just use it for the >5 v system)
-		fronts = 0
-		backs = 0
-		highs = 0
-		lows = 0 # Count how many and try to balance, perhaps with a bit of a forward or backward lean depending on language.
+		vowelInventory = [
+			[IPAvowel("i", "close", "front", false, []), IPAvowel("ɪ", "nearclose", "front", false, [])][findfirst(
+				cumsum([0.75, 0.25]) .> rand(rng))],
+			[IPAvowel("e", "closemid", "front", false, []), IPAvowel("ɛ", "openmid", "front", false, [])][findfirst(
+				cumsum([0.5, 0.5]) .> rand(rng))],
+			[IPAvowel("a", "open", "front", false, []), IPAvowel("æ", "nearopen", "front", false, [])][findfirst(
+				cumsum([0.99, 0.01]) .> rand(rng))],
+			[IPAvowel("o", "closemid", "back", true, []), IPAvowel("ɔ", "openmid", "back", true, [])][findfirst(
+				cumsum([0.5, 0.5]) .> rand(rng))],
+			[IPAvowel("u", "high", "back", true, []), IPAvowel("ʊ", "nearhigh", "back", true, [])][findfirst(
+				cumsum([0.9, 0.1]) .> rand(rng))]
+		]
 	else
-		close = true
-		nearclose = rand(rng) < 0.5
-		closemid = rand(rng) < 0.5
-		mid = rand(rng) < 0.5
-		openmid = rand(rng) < 0.5
-		nearopen = rand(rng) < 0.5
-		open = true 
-		heights = [close, nearclose, closemid, mid, openmid, nearopen, open]
+		# RANDOM VOWEL SYSTEM; scale to consonant count. 
 
-		for height in heights
-			
+		#Dictionary of vowels; update probability every time so it adds up to 1. Remove and update all probabilities by distance.
+		#Nasals should be a second phase so it only chooses vowels that are already in the language
+		
+		# highest probability: Front unrounded vowels and back rounded vowels that aren't in an even position.
+		vWeights = Dict()
+		for vy in 1:length(IPAvowels)
+			for vx in 1:length(IPAvowels[1])
+				for vr in 1:2
+					if IPAvowels[vy][vx][vr] != '*'
+						vWeight = 2
+						if !(vy%2==0); vWeight += 8; end # Boost the odd rows with the vowels that aren't "intermediate"
+						if ((vx==1 && vr==1) || (vx==3 && vr==2 && vy<6)); vWeight += 10; end # Boost the rows with vowels that are front unrounded or back rounded.
+						if (vy%2==0); vWeight ÷= 2; end
+						vWeights[IPAvowels[vy][vx][vr]] = vWeight
+					end
+				end
+			end
 		end
+		println(vWeights)
+		while true
+			selectWeightedVowel(rng, vowelInventory, vWeights)
+			if length(vowelInventory) >= 4
+				rand(rng) < ( -2/length(vowelInventory)+0.51 ) && break
+			end
+		end
+		println(vowelInventory)
+		
+		#i->ɪ - length or stressedness distinction (outside of this if statement)
+
 	end
 	# Length, nasalization, breathy/creaky, etc. goes after over a for loop of the vowelInventory
+	# Diphthongs
 	
 	# Tone (Maybe include a tone graph.) 60%-ish of languages in natlangs
+	# Related to phonotactics generation - lexical or grammatical tone?
 
 	return vowelInventory
 end
 
-function vowelSelection(rng, )
+function selectWeightedVowel(rng, vowelInventory, vWeights)
 	# Preferential distance algorithm, in which certain features (like back roundness) are prioritized
-	for height in 1:length(IPAvowels)
-		for backness in 1:length(IPAvowels[height])
-			IPAvowels[height, backness]
+	keylist = [key for key in keys(vWeights)]
+	valuelist = [vWeights[key] for key in keylist]
+	vowel = keylist[findfirst(cumsum(valuelist) .> (rand(rng)*sum(valuelist)))]
+	
+	vowelpos = findVowelPosition(vowel)
+	push!(vowelInventory, IPAvowel(vowel, vowelHeight[vowelpos[1]], vowelBackness[vowelpos[2]], vowelpos[3]-1, []))
+	delete!(vWeights, vowel)
+	return reweighVowels(vWeights, vowelInventory, vowelpos)
+end
+
+function reweighVowels(vWeights, vowelInventory, origin)
+	for vy in 1:length(IPAvowels)
+		for vx in 1:length(IPAvowels[1])
+			for vr in 1:2
+				if !(IPAvowels[vy][vx][vr] in [v.phoneme for v in vowelInventory] || IPAvowels[vy][vx][vr]=='*')
+					distance = max(vy-origin[1], vx-origin[2])
+					if distance != 0 # the rounding counterpart to the most recent vowel
+						vWeights[IPAvowels[vy][vx][vr]] = vWeights[IPAvowels[vy][vx][vr]] / (2/distance)
+					end
+				end
+			end
+		end
+	end 
+end
+
+function findVowelPosition(vowel::Char)
+	for vy in 1:length(IPAvowels)
+		for vx in 1:length(IPAvowels[1])
+			for vr in 1:2
+				if IPAvowels[vy][vx][vr] == vowel
+					return [vy, vx, vr]
+				end
+			end
 		end
 	end
-	
 end
