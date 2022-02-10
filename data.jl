@@ -33,6 +33,7 @@ IPApulmonicConsonants = [ # % - blank, * - grey
 [('%', '%'), ('%', 'ʋ'), ('%', '%'), ('%', 'ɹ'), ('%', '%'), ('%', 'ɻ'), ('%', 'j'), ('%', 'ɰ'), ('%', '%'), ('%', '%'), ('*', '*')], # Approximant
 [('*', '*'), ('*', '*'), ('%', '%'), ('%', 'l'), ('%', '%'), ('%', 'ɭ'), ('%', 'ʎ'), ('%', 'ʟ'), ('%', '%'), ('*', '*'), ('*', '*')]  # Lateral Approximant
 ]
+# Translate IPAconsonant place with eval(Meta.parse(uppercase(consonant.place)))
 const BILABIAL = 1
 LABIODENTAL = 2
 DENTAL = 3
@@ -124,7 +125,7 @@ struct IPAconsonant <: IPAchr # Pulmonic and nonpulmonic; click and voiced implo
 	phoneme::Union{String, Char}
 	place::String
 	manner::String
-	voice::Bool # May not be needed
+	voice::Bool 
 	diacritics::Array{IPAdiacritic}
 end
 
@@ -134,7 +135,7 @@ struct IPAvowelmodifier <: IPA # Include tone, nasal, and length
 end
 
 struct IPAvowel <: IPAchr
-	phoneme::String
+	phoneme::Union{String, Char}
 	height::String # Openness
 	backness::String
 	roundness::Bool # true is round
@@ -277,26 +278,26 @@ end
 
 abstract type PoS end
 struct Noun <: PoS
-	split
+	translation
 	word
 	gender
 	animacy
 end
 struct Verb <: PoS
-	split
+	translation
 	word
 	transitive
 	dative
 end
-abstract type Descriptor end
+abstract type Descriptor <: PoS end
 struct Adjective <: Descriptor
-	split
+	translation
 	word
 	agreement # Nominal or verbal treatment
 	animacy
 end
 struct Adverb <: Descriptor
-	split
+	translation
 	word
 	gender
 	animacy

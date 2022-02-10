@@ -26,8 +26,11 @@ function constructLanguage(seed)
 		push!(phonemearray, p.phoneme)
 	end
 	println(phonemearray)
+	phonotactics = buildPhonotactics(seed)
 	conlangGrammar = buildGrammaticalSystem(seed)
 	println(conlangGrammar)
+	conlangLexicon = buildLexemes(seed, phoneticInventory, phonotactics)
+	println(conlangLexicon)
 end
 
 function main()
@@ -48,12 +51,12 @@ function main()
 				constructLanguage(seed)
 			elseif inputs[1] == "load" || inputs[1] == "l"
 				if length(inputs) == 2
-					seed = parse(Int, inputs[2])
+					seed = parse(UInt64, inputs[2])
 					constructLanguage(seed)
 				end
 			elseif inputs[1] == "save" || inputs[1] == "s"
 				if length(inputs) == 2
-					seed = parse(Int, inputs[2])
+					seed = parse(UInt64, inputs[2])
 					exportLanguage(seed)
 				else
 					exportLanguage(seed)

@@ -14,7 +14,7 @@ l, load <seed> - load language with seed (ex. load 72548917)
 q, quit, exit - exit
 ```
 
-Current output consists of a phoneme inventory and grammar overview. 
+Current output consists of a phoneme inventory and grammar overview, as well as a small starter lexicon. 
 
 ### Under Construction:
 
