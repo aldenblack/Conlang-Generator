@@ -174,6 +174,13 @@ function sameWithMargin(randval, base, margin)
 	return randval < margin ? !base : base
 end
 
+""" Returns a boolean describing whether a consonant is nonpulmonic"""
+function nonpulmonic(consonant::IPAconsonant)
+	return lowercase(consonant.manner) == "implosive" || 
+			occursin("ejective", lowercase(consonant.manner)) || 
+			lowercase(consonant.manner) == "click"
+end
+
 #=
 pVoicing: false
 pAspiration: true
@@ -289,20 +296,24 @@ struct Verb <: PoS
 	transitive
 	dative
 end
+struct Adposition <: PoS
+	translation
+	word
+end
 abstract type Descriptor <: PoS end
 struct Adjective <: Descriptor
 	translation
 	word
 	agreement # Nominal or verbal treatment
-	animacy
+	class
 end
 struct Adverb <: Descriptor
 	translation
 	word
-	gender
-	animacy
 end
-	
+
+println("Reading Dictionary...")
+vocabList = CSV.read("vocablist.csv", DataFrame)
 
 
 # OUTPUT 

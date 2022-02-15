@@ -31,6 +31,11 @@ function constructLanguage(seed)
 	println(conlangGrammar)
 	conlangLexicon = buildLexemes(seed, phoneticInventory, phonotactics)
 	println(conlangLexicon)
+	conlangDict = Dict()
+	for word in conlangLexicon
+		conlangDict[word.translation] = word.word
+	end
+	@info conlangDict
 end
 
 function main()
