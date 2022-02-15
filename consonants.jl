@@ -120,7 +120,7 @@ function buildConsonantInventory(seed)
 	randval = rand(rng)
 	cap = 0.61 - 0.2*pVoicing + 0.2*pAspiration + 0.2*prenasalize
 	implosives = randval < cap/4
-	ejectives = rand(rng) < 0.06 / (twoOrMore([pVoicing, pAsporation, prenasalize, implosives]) ? 6 : 1)
+	ejectives = rand(rng) < 0.06 / (twoOrMore([pVoicing, pAspiration, prenasalize, implosives]) ? 6 : 1)
 	buildNonpulmonicSeries(rng, consonantInventory, places, clicks, implosives, ejectives)
 
 	
