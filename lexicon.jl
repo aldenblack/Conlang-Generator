@@ -87,8 +87,11 @@ function generateSyllable(rng, phonology, phonotactics, complexity)
 	syllable *= join([getCharAndDiacritics(c) for c in generateConsonantCluster(rng, phonology, phonotactics[2], complexity)])
 	end
 	return syllable
-end
+end # FIXME: Complexity currently created 4453869935803909477: "exist " => kʰojdutsʰɹutsʰkxʰip" (Lang also has tʰ d + s z => tsʰ)
+# "notify " => "bʰotsʰtʰitsʰ" 
 
+#FIXME: Give phonemes a random weight determined by how easy they are to produce that will determine how common they are in words.
+#TODO: Add an extra feature that limits certain types of clusters in a language and filters consonant cluster generation
 function generateConsonantCluster(rng, phonology, max::Int, complexity::Int) 
 	cluster = []
 	# Don't repeat a sound twice. Don't go from a nasal to a nasal or a plosive to a plosive. Treat nonpulmonics like plosives.

@@ -35,6 +35,7 @@ IPApulmonicConsonants = [ # % - blank, * - grey
 ]
 # Translate IPAconsonant place with eval(Meta.parse(uppercase(consonant.place)))
 const BILABIAL = 1
+LABIOVELAR = 1
 LABIODENTAL = 2
 DENTAL = 3
 ALVEOLAR = 4
@@ -45,6 +46,7 @@ VELAR = 8
 UVULAR = 9
 PHARYNGEAL = 10
 GLOTTAL = 11
+
 NASAL = 1
 PLOSIVE = 2
 FRICATIVE = 3
@@ -53,6 +55,10 @@ TAP = 5
 LATERALFRICATIVE = 6
 APPROXIMANT = 7
 LATERALAPPROXIMANT = 8
+CLICK = 2.4
+AFFRICATE = 2.5
+EJECTIVE = 2.6
+IMPLOSIVE = 2.7
 pulmonicPlaces = Dict(
 	1 => "Bilabial", 
 	2 => "Labiodental",
@@ -85,7 +91,7 @@ const IPAvowels = [
 	[('*', '*'), ('ə', '*'), ('*', '*')],
 	[('ɛ', 'œ'), ('ɜ', 'ɞ'), ('ʌ', 'ɔ')],
 	[('æ', '*'), ('ɐ', '*'), ('*', '*')], 
-	[('a', 'ɶ'), ('*', '*'), ('ɑ', 'ɒ')] # ɚɝɛ̃ʋⱱ
+	[('a', 'ɶ'), ('*', '*'), ('ɑ', 'ɒ')] # ɚɝɛ̃ʋⱱ #FIXME: Should a be central to cut off supply to a, or stay to cut off æ 
 ]
 CLOSE = 1
 NEARCLOSE = 2
@@ -221,13 +227,13 @@ struct Grammar
 	adjEncoding::Int
 end
 # Data taken from https://en.wikipedia.org/wiki/Word_order#Distribution_of_word_order_types Dryer 2005 Study
-const SOV = 0.405
-const SVO = 0.354
-const VSO = 0.069
-const VOS = 0.021
-const OVS = 0.007
-const OSV = 0.003
-const UNFIXED = 0.141
+const SOV = "Subject Object Verb"
+const SVO = "Subject Verb Object"
+const VSO = "Verb Subject Object"
+const VOS = "Verb Object Subject"
+const OVS = "Object Verb Subject"
+const OSV = "Object Subject Verb"
+const UNFIXED = "Unfixed"
 const UNF = "Unfixed"
 
 const N = "Noun"
@@ -245,10 +251,10 @@ const OBJ = "Direct Object"
 const INDOBJ = "Indirect Object"
 
  
-PP = "Prepositional Phrase"
-NP = "Noun Phrase"
-VP = "Verb Phrase"
-DT = "Determiner Phrase"
+PPhrase = "Prepositional Phrase"
+NPhrase = "Noun Phrase"
+VPhrase = "Verb Phrase"
+DTPhrase = "Determiner Phrase"
 
 const NOMACC = "Nominative/Accusative"
 const NOMMAR = "Nominative/Accusative - Marked Nominative"
@@ -323,5 +329,40 @@ end
 function Base.zero(::Type{String})
 	return ""
 end
+
+
+# TRANSLATION 
+abstract type Phrase end
+struct MP <: Phrase # Adverb-like modifiers
+    head::String
+    dependent::Union{MP, Nothing}
+end
+struct DP <: Phrase # Determiners and other nominal modifiers
+    head::Union{DP, String}
+    headPoS::String
+    dependent::Union{DP, MP, Nothing}
+end
+struct NP{T} <: Phrase
+    head::Union{NP, String}
+    dependent::Union{Phrase, Nothing}
+    NP(x, y) = typeof(y) <: Union{DP, PP, RP, Nothing} ? new{Phrase}(x, y) : error("improper phrase contents")
+end
+struct VP <: Phrase # Contains the verb and its object. Nesting a VP in a VP allows reference of the indirect object. (or insert an MP)
+    head::Union{VP, String}
+    dependent::Union{MP, NP, Nothing}
+end
+struct Root <: Phrase # Root of a clause, with a subject and verb.
+    head::VP
+    dependent::Union{NP, Nothing}
+end
+struct RP <: Phrase
+    head::String
+    dependent::Union{Root, VP}
+end
+struct PP <: Phrase
+    head::String
+    dependent::Union{NP, Nothing}
+end
+# TODO: Grammaticalized version of translation, in which nouns, verbs, and adjectives carry declension information (e.g. 1P.SG.PRS.PRF) to translate to the best equivalent
 
 

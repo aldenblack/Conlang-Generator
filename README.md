@@ -16,11 +16,21 @@ q, quit, exit - exit
 
 Current output consists of a phoneme inventory and grammar overview, as well as a small starter lexicon. 
 
+Note: It is recommended that you save the whole language file for any languages you want to keep rather than just saving the seed, as this project is still under construction and the generation algorithm is liable to change over time.
+
+### Features:
+
+- Realistic consonant and vowel generation
+- Starter dictionary for your conlang
+- Rudimentary grammatical structure construction (phrase order structure)
+- Grammar transliteration for annotated examples
+
 ### Under Construction:
 
 - Exporting to files (save function)
-- Case/Declensions tables, grammar formatting, and anglicized examples
-- Lexicon generation
+- Declension and conjugation tables for nouns and verbs (with examples in English)
+- Expanded Lexicon
+- English to Conlang Translation using the conlang starter dictionary
 
 ### Dependencies
 
@@ -38,3 +48,4 @@ Current output consists of a phoneme inventory and grammar overview, as well as 
 [Leipzig Glossing Rules](https://www.eva.mpg.de/lingua/resources/glossing-rules.php)
 
 [Universal Language Dictionary](https://www.frathwiki.com/Universal_Language_Dictionary) (Lexicon generation based largely on this source)
+

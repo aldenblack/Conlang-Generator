@@ -35,7 +35,7 @@ function buildPhonotactics(seed)
 	# USE SET FOR WORD-INITIAL ETC -- no need, it constructs itself organizedly
 
 	#Stress system
-	# Initial, Second, Penultimate, Ultimate
+	# Initial, Second, Penultimate, Ultimate, tonal, Unfixed
 end
 
 function balance(array::Vector, iterations)

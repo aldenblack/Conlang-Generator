@@ -93,7 +93,7 @@ function buildGrammaticalSystem(seed) #buildPhraseStructure, really
 				push!(verbPhraseStructure, OBJ)
 			end
 		end
-		insert!(verbPhraseStructure, indexof(verbPhraseStructure, SUB)+1-adpfirst, PP)
+		insert!(verbPhraseStructure, indexof(verbPhraseStructure, SUB)+1-adpfirst, PPhrase)
 		insert!(verbPhraseStructure, indexof(verbPhraseStructure, OBJ)+1-(rand(rng)<0.5), INDOBJ)
 	else
 		verbPhraseStructure = [UNF] # Mark with declension in unfixed case

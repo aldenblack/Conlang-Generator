@@ -274,7 +274,7 @@ function buildAffricateSeries(rng, consonantInventory) #TODO: Each affricate sho
 	end # TODO: Current system disallows things like "dva" as a single phonemic element.
     # Also disallows ch, so the logic should go from the fricative rather than the plosive, since sh and ch double up on t, though the latter postalveolarizes non-phonemically.
 	# broad diacritic saving or specific?
-end
+end #FIXME: Dental affricates, alveolar plosive t̪ + θ does not create t̪θa, nor pfa Case: 11431623570435205651
 
 function buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiration, fLength, lApprox, lLateral)
 	# Most language will have some variation on w, l and r-like sounds
@@ -312,14 +312,14 @@ function buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiratio
 	# Rhotics
 		# r ɾ ɹ ʁ ʀ ɻ ɽ ɺ
 	rhoticchance = 0.44
-	if any([r in [c.phoneme for c in consonantInventory] for r in ['ʁ', 'ɹ', 'ɻ']]); rhoticchance -= 0.34; end
+	if any([r in [c.phoneme for c in consonantInventory] for r in ['ʁ', 'ɹ', 'ɻ', 'l']]); rhoticchance -= 0.34; end
 	rhotics = [ IPAconsonant('r', "Alveolar", "Trill", true, []), 
 				IPAconsonant('ʀ', "Uvular", "Trill", true, []), 
 				IPAconsonant('ɾ', "Alveolar", "Tap", true, []), 
 				IPAconsonant('ɹ', "Alveolar", "Approximant", true, []), 
 				IPAconsonant('ɽ', "Retroflex", "Tap", true, []), 
 				IPAconsonant('ɻ', "Retroflex", "Approximant", true, []), 
-				IPAconsonant('ɺ', "Alveolar Lateral", "Tap", true, [])]
+				IPAconsonant('ɺ', "Alveolar", "Tap", true, [])] #FIXME: Alveolar Lateral Tap
 	if !('l' in [c.phoneme for c in consonantInventory])
 		if rand(rng) < 0.35; push!(consonantInventory, rhotics[7]); rhoticchance/=4; end
 	end
@@ -335,8 +335,8 @@ function buildLiquidSeries(rng, consonantInventory, places, fVoicing, fAspiratio
 	excess = Dict(
 		IPAconsonant('ⱱ', "Labiodental", "Tap", true, []) => 0.01,
 		IPAconsonant('ʙ', "Bilabial", "Trill", true, []) => 0.005,
-		IPAconsonant('w', "Alveolar", "Trill", true, []) => 0.88,
-		IPAconsonant('ʍ', "Alveolar", "Trill", false, []) => 0.01,
+		IPAconsonant('w', "Bilabial", "Approximant", true, []) => 0.88, #FIXME: w should be labiovelar
+		IPAconsonant('ʍ', "Bilabial", "Approximant", false, []) => 0.01,
 		IPAconsonant('h', "Glottal", "Fricative", false, []) => 0.50 # TODO: Pair with /x/ and Pharyngial/glottal series
 	)
 	for key in keys(excess)

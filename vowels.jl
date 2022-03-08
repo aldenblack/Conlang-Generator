@@ -1,5 +1,5 @@
 using Random
-include("data.jl")
+#include("data.jl")
 function buildVowelInventory(seed)
 	rng = MersenneTwister(seed)
 	#VOWELS
@@ -14,8 +14,8 @@ function buildVowelInventory(seed)
 	vowelsystem = val < 0.15 ? 0 : ( val < 0.45 ? 1 : 2) # 0 - 3vowel, 1 - 5vowel, 2 - random other
 	# Prioritize open in the front and round in the back.
 	roundfront = rand(rng) < 0.3
-	highnasal = rand(rng) < 0.1
-	lownasal = rand(rng) 
+	highnasal = rand(rng) < 0.1 # closenasal
+	lownasal = rand(rng) #opennasal - do a region selection where sometimes single rows get removed amid the rest, or whole columns
 	if vowelsystem == 0 
 		v1options = [IPAvowel("i", "close", "front", false, []), IPAvowel("ɪ", "nearclose", "front", false, []), IPAvowel("e", "closemid", "front", false, [])]
 		v1 = v1options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))] # test case 0.3, 0.3, 0.4
@@ -25,7 +25,7 @@ function buildVowelInventory(seed)
 			v2 = v2options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))] # 137397147 proof of e == e
 			v1.phoneme != v2.phoneme && break
 		end
-		v3options = [IPAvowel("u", "high", "back", true, []), IPAvowel("o", "closemid", "back", true, []), IPAvowel("ɯ", "high", "back", false, []),]
+		v3options = [IPAvowel("u", "close", "back", true, []), IPAvowel("o", "closemid", "back", true, []), IPAvowel("ɯ", "close", "back", false, []),]
 		v3 = v3options[findfirst(cumsum([0.9, 0.08, 0.02]) .> rand(rng))]
 		push!(vowelInventory, v1)
 		push!(vowelInventory, v2)
@@ -40,7 +40,7 @@ function buildVowelInventory(seed)
 				cumsum([0.99, 0.01]) .> rand(rng))],
 			[IPAvowel("o", "closemid", "back", true, []), IPAvowel("ɔ", "openmid", "back", true, [])][findfirst(
 				cumsum([0.5, 0.5]) .> rand(rng))],
-			[IPAvowel("u", "high", "back", true, []), IPAvowel("ʊ", "nearhigh", "back", true, [])][findfirst(
+			[IPAvowel("u", "close", "back", true, []), IPAvowel("ʊ", "nearclose", "back", true, [])][findfirst(
 				cumsum([0.9, 0.1]) .> rand(rng))]
 		]
 	else
@@ -71,7 +71,7 @@ function buildVowelInventory(seed)
 				rand(rng) < ( -2/length(vowelInventory)+0.51 ) && break
 			end
 		end
-		println(vowelInventory)
+		println(vowelInventory) 
 		
 		#i->ɪ - length or stressedness distinction (outside of this if statement)
 
@@ -85,11 +85,15 @@ function buildVowelInventory(seed)
 	return vowelInventory
 end
 
-function selectWeightedVowel(rng, vowelInventory, vWeights)
+function selectWeightedVowel(rng, vowelInventory, vWeights) 
 	# Preferential distance algorithm, in which certain features (like back roundness) are prioritized
 	keylist = [key for key in keys(vWeights)]
 	valuelist = [vWeights[key] for key in keylist]
-	vowel = keylist[findfirst(cumsum(valuelist) .> (rand(rng)*sum(valuelist)))]
+	position = findfirst(cumsum(valuelist) .>= (rand(rng)*sum(valuelist)))
+	if isnothing(position) # when the cumsum == rand*sum (i.e. rand=1), a nothing value is returned
+		position = length(valuelist)
+	end
+	vowel = keylist[position] 
 	
 	vowelpos = findVowelPosition(vowel)
 	push!(vowelInventory, IPAvowel(vowel, vowelHeight[vowelpos[1]], vowelBackness[vowelpos[2]], vowelpos[3]-1, []))

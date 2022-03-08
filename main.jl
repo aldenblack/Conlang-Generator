@@ -1,5 +1,5 @@
 using Random
-include("data.jl") #(Datastructure to query how everything relates to one another. if all else fails, do popping from a set and rejecting probablistically)
+include("data.jl") 
 include("consonants.jl")
 include("vowels.jl")
 include("phonotactics.jl")
@@ -47,7 +47,7 @@ function main()
 	println("s, save - save current language as a markdown file")
 	println("q, quit, exit - exit")
 	while true # DO WHILE?
-		seed = rand(UInt64) # Set a default seed in case people use "save" before running. 
+		seed = rand(UInt64) # Sets a default seed in case people use "save" before running. 
 		input = readline(stdin)
 		inputs = split(input)
 		if length(inputs) > 0
